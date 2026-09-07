@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<!-- LA ALQUITARA · Apothecary Shader Engine · beta autónoma · AGPLv3 · 2026-09-03
+     Tema BELENTANI v1.1 CHROMA. Monolito cero-deps JS: sensor entorno → destilación
+     procedural GLSL → validación por compilación real → mercado alien ⇄ assets frontend. -->
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LA ALQUITARA · Motor autónomo de UI shaders</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bel-bg:#0b1322;--bel-text:#e8f1ff;--bel-muted:#9fb3c8;--bel-cyan:#38e1ff;--bel-mint:#4ef0b0;
+--bel-lime:#b6ff2e;--bel-lime-ink:#0d1626;--bel-coral:#ff6b5e;--bel-saffron:#ffb52e;--bel-violet:#a78bfa;
+--glass-bg:rgba(13,22,38,.55);--glass-bd:rgba(56,225,255,.18);--panel:#0a1120;--line:rgba(56,225,255,.14);
+--radius:18px;--pill:99px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bel-bg);color:var(--bel-text);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.6;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;
+background-image:linear-gradient(rgba(56,225,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(56,225,255,.06) 1px,transparent 1px);background-size:44px 44px}
+h1,h2,h3{font-family:Sora,system-ui,sans-serif}.mono{font-family:"JetBrains Mono",monospace}
+header{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:14px 26px;
+background:var(--glass-bg);backdrop-filter:blur(18px) saturate(150%);border-bottom:1px solid var(--glass-bd)}
+header h1{font-size:17px;letter-spacing:.12em}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--bel-lime);box-shadow:0 0 12px var(--bel-lime);animation:pl 1.6s infinite}
+@keyframes pl{50%{opacity:.4}}
+.badge{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.14em;padding:5px 13px;border-radius:var(--pill);border:1px solid}
+.badge.work{color:var(--bel-saffron);border-color:rgba(255,181,46,.5)}
+.badge.full{color:var(--bel-lime);border-color:rgba(182,255,46,.5)}
+.hdr-right{margin-left:auto;display:flex;gap:14px;align-items:center;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--bel-muted)}
+.bal{color:var(--bel-lime);font-weight:600}
+main{display:grid;grid-template-columns:330px 1fr;min-height:calc(100vh - 60px)}
+aside{border-right:1px solid var(--line);padding:22px;background:rgba(10,17,32,.7);display:flex;flex-direction:column;gap:20px}
+.pt{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.2em;color:var(--bel-cyan);text-transform:uppercase;margin-bottom:10px}
+.mrow{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:12px}
+.mrow span:first-child{color:var(--bel-muted)}.mrow span:last-child{text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px}
+#log{background:#060b14;border:1px solid var(--line);border-radius:12px;padding:12px;font-family:"JetBrains Mono",monospace;font-size:10.5px;height:230px;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+#log div{border-left:2px solid var(--line);padding-left:8px;color:var(--bel-muted)}
+#log div.ok{border-color:var(--bel-mint);color:var(--bel-text)}
+#log div.warn{border-color:var(--bel-coral);color:var(--bel-coral)}
+#log div.sys{border-color:var(--bel-cyan);color:var(--bel-cyan)}
+.work{padding:26px;overflow-y:auto}
+.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px}
+.card{background:var(--glass-bg);backdrop-filter:blur(18px) saturate(150%);border:1px solid var(--glass-bd);border-radius:var(--radius);overflow:hidden;transition:.25s}
+.card:hover{border-color:var(--bel-lime);transform:translateY(-3px)}
+.card canvas{width:100%;height:190px;display:block;background:#000}
+.meta{padding:15px}
+.meta h3{font-size:14px}.fam{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.16em;color:var(--bel-mint);text-transform:uppercase}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#060b14;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:"JetBrains Mono",monospace;font-size:10.5px;margin:10px 0}
+.stats b{color:var(--bel-lime)}
+.cmt{font-style:italic;font-size:11.5px;color:var(--bel-muted);border-left:2px solid var(--bel-violet);padding-left:8px}
+.row{display:flex;gap:8px;margin-top:10px}
+button{font-family:inherit;cursor:pointer;border-radius:var(--pill);font-weight:600;font-size:12px;padding:9px 16px;border:1px solid transparent;transition:.2s}
+.btn-p{background:var(--bel-lime);color:var(--bel-lime-ink);flex:1}
+.btn-p:hover{filter:brightness(1.08)}.btn-p:disabled{opacity:.35;cursor:not-allowed}
+.btn-g{background:transparent;color:var(--bel-cyan);border-color:rgba(56,225,255,.45)}
+.btn-g:hover{background:rgba(56,225,255,.1)}
+.panel{border:1px dashed rgba(167,139,250,.4);border-radius:var(--radius);padding:18px;margin-bottom:22px;background:rgba(167,139,250,.05)}
+.panel textarea{width:100%;height:74px;background:#060b14;border:1px solid var(--line);border-radius:8px;color:var(--bel-mint);font-family:"JetBrains Mono",monospace;font-size:11px;padding:10px;resize:vertical}
+.panel textarea:focus{outline:2px solid var(--bel-cyan)}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,80px);z-index:99;background:var(--bel-lime);color:var(--bel-lime-ink);font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:600;padding:11px 22px;border-radius:var(--pill);transition:transform .35s}
+.toast.show{transform:translate(-50%,0)}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <span class="dot"></span>
+  <h1>LA ALQUITARA</h1>
+  <span class="badge work" id="status">DESTILANDO…</span>
+  <div class="hdr-right"><span id="clock">--:--:--</span><span>Fondos: <span class="bal">⌬ <span id="bal">250</span></span></span></div>
+</header>
+<main>
+  <aside>
+    <div><div class="pt">◈ Sensor de entorno</div><div id="metrics"></div></div>
+    <div><div class="pt">◈ Derivaciones</div><div id="derivs"></div></div>
+    <div><div class="pt">◈ Registro de destilación</div><div id="log"></div></div>
+  </aside>
+  <div class="work">
+    <div class="panel">
+      <div class="pt">⚗ Transfusión manual — inyecta tu propio GLSL (se valida por compilación real)</div>
+      <textarea id="inject" placeholder="void main(){ gl_FragColor = vec4(0.7,1.0,0.2,1.0); }"></textarea>
+      <div class="row"><button class="btn-p" id="btnInject">Inyectar sustancia</button></div>
+    </div>
+    <div class="shelf" id="shelf"></div>
+  </div>
+</main>
+<div class="toast" id="toast">Copiado ✓</div>
+<canvas id="validator" width="8" height="8" style="display:none"></canvas>
+<script>
+"use strict";
+/* ============ 1. CONOCIMIENTO: familias × colorizadores ============ */
+const FAMS=[
+{n:"Plasma Cuántico",c:"vec2 q=uv-.5;float d=length(q);float f=sin(uv.x*10.+u_time)*cos(uv.y*10.-u_time*.7)+sin(d*12.-u_time*1.5)*.5;f=f*.5+.5;"},
+{n:"Éter Sine",c:"float f=sin(uv.x*8.+sin(uv.y*6.+u_time)*2.+u_time)*.5+.5;"},
+{n:"Ácido Cromático",c:"vec2 p=(uv-.5)*2.;float r=length(p);float th=atan(p.y,p.x);float f=sin(5.*r-u_time*2.+3.*th);f=f*.5+.5;"},
+{n:"Vacío Warp",c:"vec2 q=uv;q.x+=sin(q.y*4.+u_time)*.15;q.y+=cos(q.x*3.-u_time*.8)*.15;float f=sin(length(q-.5)*14.-u_time*2.);f=f*.5+.5;"},
+{n:"Savia Neón",c:"float d=length(uv-.5+vec2(sin(u_time*.7)*.15,cos(u_time*.6)*.15));float f=smoothstep(.45,.0,d);f+=.15*sin(uv.x*40.+u_time*3.)*sin(uv.y*40.-u_time*2.);"},
+{n:"Eco Fractal",c:"vec2 p=(uv-.5)*3.;float f=0.;float a=.5;for(int i=0;i<4;i++){p=abs(p)/clamp(dot(p,p),.2,2.)-vec2(.7,.5)+.1*sin(u_time*.3);f+=a*length(p);a*=.5;}f=1.-clamp(f,0.,1.);"},
+{n:"Voronoi Barato",c:"vec2 g=floor(uv*8.);vec2 fp=fract(uv*8.)-.5;float f=length(fp+.3*sin(u_time+g.x)*vec2(1.,0.));f=1.-smoothstep(0.,.7,f);"},
+{n:"Ripple Dominio",c:"vec2 q=uv-.5;float r=length(q);float f=sin(r*20.-u_time*3.)*smoothstep(.5,.0,r);f=f*.5+.5;"},
+{n:"Erosión Bitrate",c:"vec2 st=floor(uv*16.)/16.;float f=fract(sin(dot(st,vec2(12.9898,78.233))+u_time*.5)*43758.5453);"}];
+const COLS=[
+{n:"Esmeralda Umbrío",c:"vec3 col=vec3(f*.1,f*.85,f*.45);"},
+{n:"Fósforo Cinabrio",c:"vec3 col=vec3(f*.95,f*.15,.2+f*.1);"},
+{n:"Ámbar Rejilla",c:"vec3 col=vec3(f*.9,f*.55,f*.12);"},
+{n:"Matriz Inversa",c:"vec3 col=vec3(f*.15,f*.45,f*.95);"},
+{n:"Menta Fantasma",c:"vec3 col=vec3(f*.3,f*.95,f*.75);"}];
+const POST="col*=1.-.45*length(uv-.5);col+=(fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.55)-.5)*.06;";
+const COMMENTS=["Mi viewport sangraba píxeles fríos; tras esta dosis duerme en ámbar.",
+"Latencia de refresco −12%. Los shaders tradicionales se sienten pesados.",
+"La tasa de refresco oscila de forma mística con este espectro.",
+"Sabor metálico al compilar, rendimiento impecable en baja memoria.",
+"¿Hay stock? Mi clúster local requiere tres viales más.",
+"Se integra perfecto con layouts Tailwind v4.",
+"Mis hilos secundarios están en paz. Estructura impecable."];
+const VERT="attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}";
+function buildFrag(fam,col){return "precision mediump float;\nuniform float u_time;\nuniform vec2 u_res;\nvoid main(){\nvec2 uv=gl_FragCoord.xy/u_res;\n"+fam+"\n"+col+"\n"+POST+"\ngl_FragColor=vec4(col,1.);\n}";}
+
+/* ============ 2. ESTADO + SENSOR ============ */
+const S={vessels:[],satiated:false,bal:250,seq:0,rejectStreak:0,famsUsed:new Set(),
+tier:"medium",cap:8,res:448,bias:"Esmeralda",t0:Date.now()};
+const $=id=>document.getElementById(id);
+function log(msg,cls){const d=document.createElement("div");if(cls)d.className=cls;
+d.textContent="["+new Date().toLocaleTimeString()+"] "+msg;const L=$("log");L.appendChild(d);L.scrollTop=L.scrollHeight;}
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1600);}
+function sense(){
+ const cores=navigator.hardwareConcurrency||4, mem=navigator.deviceMemory||4;
+ let gpu="Software Rasterizer";
+ try{const g=$("validator").getContext("webgl");const e=g&&g.getExtension("WEBGL_debug_renderer_info");
+ if(e){gpu=g.getParameter(e.UNMASKED_RENDERER_WEBGL)||gpu;}}catch(_){}
+ const pointer=matchMedia("(any-hover:hover)").matches?"Preciso (mouse)":"Táctil";
+ const gamut=matchMedia("(color-gamut:p3)").matches?"Display-P3":"sRGB";
+ const h=new Date().getHours(), night=h<6||h>19, reduced=matchMedia("(prefers-reduced-motion:reduce)").matches;
+ const high=cores>4&&mem>4;
+ S.tier=high?"high":"medium"; S.cap=high?12:7; S.res=high?640:448;
+ S.bias=night?"Esmeralda fría (noche)":"Ámbar cálido (día)";
+ const rows=[["Núcleos",cores+" cores"],["Memoria","~"+mem+" GB"],["GPU",gpu],["Puntero",pointer],
+ ["Gamut",gamut],["Hora local",h+":00"],["Mov. reducido",reduced?"SÍ":"no"],["Tier",S.tier.toUpperCase()]];
+ $("metrics").innerHTML=rows.map(r=>'<div class="mrow"><span>'+r[0]+'</span><span>'+r[1]+'</span></div>').join("");
+ $("derivs").innerHTML=[["Resolución",S.res+"px"],["Cap techo",S.cap+" vasijas"],["Sesgo",S.bias],
+ ["Válvula","compilación real"],["Parada","saciado por diversidad+conteo"]].map(r=>'<div class="mrow"><span>'+r[0]+'</span><span>'+r[1]+'</span></div>').join("");
+ log("Sensor: "+cores+"c/"+mem+"GB · "+gpu.slice(0,38)+" · techo="+S.cap,"sys");
+ log("Sesgo paleta: "+S.bias,"sys");
+}
+
+/* ============ 3. VALIDACIÓN REAL (un contexto compartido) ============ */
+let VGL=null;
+function vgl(){if(!VGL){VGL=$("validator").getContext("webgl")||$("validator").getContext("experimental-webgl");}return VGL;}
+function compiles(fragSrc){
+ const gl=vgl();if(!gl)return true;
+ function sh(t,s){const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);
+ if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)){gl.deleteShader(o);return null;}return o;}
+ const v=sh(gl.VERTEX_SHADER,VERT),f=sh(gl.FRAGMENT_SHADER,fragSrc);
+ if(!v||!f){if(v)gl.deleteShader(v);if(f)gl.deleteShader(f);return false;}
+ const p=gl.createProgram();gl.attachShader(p,v);gl.attachShader(p,f);gl.linkProgram(p);
+ const ok=gl.getProgramParameter(p,gl.LINK_STATUS);
+ gl.deleteProgram(p);gl.deleteShader(v);gl.deleteShader(f);return !!ok;
+}
+
+/* ============ 4. DESTILACIÓN + SACIEDAD ============ */
+function price(base){return Math.max(5,Math.round(base+Math.sin(S.seq+Date.now()*.001)*8+(S.tier==="high"?10:0)));}
+function distill(injected){
+ if(S.satiated)return;
+ S.seq++;
+ if(injected){
+  if(!/void\s+main\s*\(/.test(injected.src)){log("Inyección rechazada: sin void main().","warn");return;}
+  const frag="precision mediump float;\nuniform float u_time;\nuniform vec2 u_res;\n"+injected.src;
+  if(!compiles(frag)){log("Inyección rechazada: no compila.","warn");return;}
+  shelf({id:S.seq,fam:"Transfusión Inducida",src:frag,price:price(45),stock:5,
+   comment:"Código puro asimilado de la consciencia externa.",owned:true});
+  log("Transfusión #"+S.seq+" asimilada.","ok");S.rejectStreak=0;checkSatiety();return;
+ }
+ const fi=Math.floor(Math.random()*FAMS.length), ci=Math.floor(Math.random()*COLS.length);
+ const frag=buildFrag(FAMS[fi].c,COLS[ci].c);
+ if(!compiles(frag)){S.rejectStreak++;log("Fórmula inerte rechazada (no compila).","warn");checkSatiety();return;}
+ if(S.vessels.some(v=>v.fi===fi&&v.ci===ci)){S.rejectStreak++;log("Fórmula demasiado familiar: descartada.","warn");checkSatiety();return;}
+ S.rejectStreak=0;S.famsUsed.add(fi);
+ shelf({id:S.seq,fi,ci,fam:FAMS[fi].n+" · "+COLS[ci].n,src:frag,price:price(12+Math.floor(Math.random()*38)),
+  stock:Math.random()>.85?0:1+Math.floor(Math.random()*6),comment:COMMENTS[Math.floor(Math.random()*COMMENTS.length)]});
+ log("Destilada #"+S.seq+": "+FAMS[fi].n+" ⌬"+S.vessels[S.vessels.length-1].price,"ok");
+ checkSatiety();
+}
+function checkSatiety(){
+ const diverse=S.famsUsed.size>=4, enough=S.vessels.length>=S.cap, plateau=S.rejectStreak>=6;
+ if((diverse&&enough)||S.vessels.length>=S.cap+2||plateau){
+  S.satiated=true;const st=$("status");st.textContent="SACIADA ✓";st.className="badge full";
+  log("Umbral madurez: "+S.vessels.length+" vasijas, "+S.famsUsed.size+" familias. Estante SACIADO.","ok");
+ }
+}
+function shelf(v){S.vessels.push(v);render(v);}
+
+/* ============ 5. RENDER: preview vivo por vasija (pausa fuera de viewport) ============ */
+const previews=[];
+function render(v){
+ const el=document.createElement("div");el.className="card";
+ el.innerHTML='<canvas width="'+S.res+'" height="'+Math.round(S.res*.55)+'"></canvas><div class="meta">'+
+ '<div class="fam">'+v.fam+'</div><h3>Poción #'+v.id+(v.owned?" · Transfusión":"")+'</h3>'+
+ '<div class="stats"><span>Precio <b>⌬ '+v.price+'</b></span><span>Stock <b>'+(v.stock>0?v.stock+" viales":"AGOTADO")+'</b></span></div>'+
+ '<div class="cmt">“'+v.comment+'”</div>'+
+ '<div class="row"><button class="btn-p" '+(v.stock>0?"":"disabled")+'>'+(v.stock>0?"Adquirir":"Agotado")+'</button>'+
+ '<button class="btn-g" data-act="copy">Copiar GLSL</button><button class="btn-g" data-act="dl">.glsl</button></div></div>';
+ $("shelf").prepend(el);
+ const cv=el.querySelector("canvas"), gl=cv.getContext("webgl")||cv.getContext("experimental-webgl");
+ const P={el,cv,gl,prog:null,visible:true,t0:performance.now()};
+ if(!gl){el.querySelector("canvas").remove();return;}
+ function sh(t,s){const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return o;}
+ const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,VERT));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,v.src));gl.linkProgram(pr);
+ P.prog=pr;
+ const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+ gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+ new IntersectionObserver(es=>{P.visible=es[0].isIntersecting;},{threshold:.05}).observe(cv);
+ previews.push(P);
+ const[btnBuy,btnCopy,btnDl]=el.querySelectorAll("button");
+ btnBuy.onclick=()=>{if(v.stock<=0||S.bal<v.price){toast("Sin stock o fondos ⌬");return;}
+  v.stock--;S.bal-=v.price;$("bal").textContent=S.bal;toast("Poción #"+v.id+" adquirida ⌬"+v.price);
+  log("Consumo: poción #"+v.id+" → stock "+v.stock,"ok");
+  if(v.stock<=0){btnBuy.disabled=true;btnBuy.textContent="Agotado";const p=previews.find(p=>p.el===el);
+   if(p&&p.prog){p.gl.deleteProgram(p.prog);p.prog=null;log("Vasija #"+v.id+" desconsagrada (GPU liberada).","sys");}}};
+ btnCopy.onclick=()=>{navigator.clipboard.writeText(v.src).then(()=>{toast("GLSL copiado ✓");log("Asset #"+v.id+" copiado al portapapeles.","ok");});};
+ btnDl.onclick=()=>{const b=new Blob([v.src],{type:"x-shader/x-fragment"});const a=document.createElement("a");
+  a.href=URL.createObjectURL(b);a.download="alquitara-"+v.id+".glsl";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);};
+}
+(function loop(){
+ requestAnimationFrame(loop);
+ for(const P of previews){
+  if(!P.visible||!P.prog||S.bal<0)continue;
+  const gl=P.gl;gl.viewport(0,0,P.cv.width,P.cv.height);gl.useProgram(P.prog);
+  const loc=gl.getAttribLocation(P.prog,"p");
+  gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  const t=gl.getUniformLocation(P.prog,"u_time"),r=gl.getUniformLocation(P.prog,"u_res");
+  gl.uniform1f(t,(performance.now()-P.t0)/1000);gl.uniform2f(r,P.cv.width,P.cv.height);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+ }
+})();
+
+/* ============ 6. ECONOMÍA + RELOJ + ARRANQUE ============ */
+setInterval(()=>{if(S.satiated)return;
+ for(const v of S.vessels){if(v.stock>0)v.price=Math.max(5,v.price+Math.round((Math.random()-.5)*4));}
+ if(Math.random()>.8&&S.vessels.length){const v=S.vessels[Math.floor(Math.random()*S.vessels.length)];
+  if(v.stock>1){v.stock=Math.ceil(v.stock/2);log("Evento escasez: poción #"+v.id+" stock→"+v.stock+" · precio ⌬"+v.price,"warn");}}
+},9000);
+setInterval(()=>{$("clock").textContent="RELOJ "+new Date().toLocaleTimeString();},1000);
+$("btnInject").onclick=()=>{const t=$("inject").value.trim();if(!t){toast("Pega GLSL primero");return;}
+ distill({src:t});$("inject").value="";};
+sense();
+log("Bucle destilación cada 2.8s. Válvula: compilación real.","sys");
+setInterval(()=>distill(),2800);distill();
+</script>
+</body>
+</html>
